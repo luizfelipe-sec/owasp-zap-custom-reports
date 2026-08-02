@@ -24,3 +24,7 @@ Messages.properties
 report.html
 template.yaml
 
+No Owaspzap ao gerar o relatório vai pegar do arquivo Messages.properties o atributo report.template.name=Relatório Tradicional Completo com Seções
+
+
+
