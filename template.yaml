@@ -1,0 +1,12 @@
+name: Relatório Tradicional Completo com Seções
+format: HTML
+mode: HTML
+extension: html
+sections:
+  - alertcount
+  - insights
+  - scriptdiagnostics
+  - screenshotsforscriptdiagnostics
+  - sequencedetails
+  - instancechart
+  - alertdetails

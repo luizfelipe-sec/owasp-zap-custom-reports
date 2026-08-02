@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${reportTitle}">Relatório ZAP</title>
+    <style>
+        body { font-family: Tahoma, Geneva, sans-serif; font-size: 11pt; color: #333; margin: 20px; line-height: 1.4; }
+        h1, h2, h3 { color: #003366; }
+        h1 { border-bottom: 2px solid #003366; padding-bottom: 5px; }
+        h2 { border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-top: 30px; }
+        .section-box { border: 1px dashed #bbb; background: #fdfdfd; padding: 12px; margin-bottom: 15px; border-radius: 3px; }
+        .alert-box { border: 1px solid #bbb; background: #fafafa; padding: 15px; margin-bottom: 20px; border-radius: 3px; }
+        .risk-3 { border-left: 6px solid #d9534f; } /* High */
+        .risk-2 { border-left: 6px solid #f0ad4e; } /* Medium */
+        .risk-1 { border-left: 6px solid #5bc0de; } /* Low */
+        .risk-0 { border-left: 6px solid #5cb85c; } /* Info */
+        table.meta-table, table.tags-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10pt; background: #fff; }
+        table.tags-table th, table.tags-table td, table.meta-table th, table.meta-table td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; }
+        table.tags-table th, table.meta-table th { background-color: #f1f1f1; color: #333; width: 25%; }
+        .code-uri { font-family: monospace; background: #eee; padding: 2px 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho Tradicional -->
+    <h1 th:text="${reportTitle}">Relatório de Alertas do OWASP ZAP</h1>
+    <p><b>Data de Geração:</b> <span th:text="${#dates.format(#dates.createNow(), 'dd/MM/yyyy HH:mm:ss')}"></span></p>
+    <p th:text="${description}"></p>
+
+    <!-- 1. Açert Count Section -->
+    <div th:if="${sections != null and #lists.contains(sections, 'alertcount')}">
+        <h2 th:text="#{report.template.section.alertcount}">Açert Count</h2>
+        <div class="section-box"><p>Resumo quantitativo de alertas.</p></div>
+    </div>
+
+    <!-- 2. Insights Section -->
+    <div th:if="${sections != null and #lists.contains(sections, 'insights')}">
+        <h2 th:text="#{report.template.section.insights}">Insights</h2>
+        <div class="section-box"><p>Análises contextuais e métricas gerais.</p></div>
+    </div>
+
+    <!-- 3. Script Diagnostics Section -->
+    <div th:if="${sections != null and #lists.contains(sections, 'scriptdiagnostics')}">
+        <h2 th:text="#{report.template.section.scriptdiagnostics}">Script Diagnostics</h2>
+        <div class="section-box"><p>Diagnósticos de execução de scripts.</p></div>
+    </div>
+
+    <!-- 4. Screenshots for script diagnostics Section -->
+    <div th:if="${sections != null and #lists.contains(sections, 'screenshotsforscriptdiagnostics')}">
+        <h2 th:text="#{report.template.section.screenshotsforscriptdiagnostics}">Screenshots for script diagnostics</h2>
+        <div class="section-box"><p>Evidências visuais de scripts.</p></div>
+    </div>
+
+    <!-- 5. Sequence Details Section -->
+    <div th:if="${sections != null and #lists.contains(sections, 'sequencedetails')}">
+        <h2 th:text="#{report.template.section.sequencedetails}">Sequence Details</h2>
+        <div class="section-box"><p>Detalhamento de sequências de requisições.</p></div>
+    </div>
+
+    <!-- 6. Instance Chart Section -->
+    <div th:if="${sections != null and #lists.contains(sections, 'instancechart')}">
+        <h2 th:text="#{report.template.section.instancechart}">Instance Chart</h2>
+        <div class="section-box"><p>Gráficos de distribuição de instâncias.</p></div>
+    </div>
+
+    <!-- 7. Alert Details Section -->
+    <div th:if="${sections == null or #lists.contains(sections, 'alertdetails')}">
+        <h2 th:text="#{report.template.section.alertdetails}">Alert Details</h2>
+
+        <div th:each="node : ${alertTree.children}">
+            <div th:if="${node.userObject != null}" th:with="alert=${node.userObject}">
+                
+                <div class="alert-box" th:classappend="'risk-' + ${alert.risk}">
+                    
+                    <h3 th:text="${alert.name}" style="margin-top: 0;">Nome do Alerta</h3>
+                    
+                    <table class="meta-table">
+                        <tr>
+                            <th>Risco:</th>
+                            <td>
+                                <span th:if="${alert.risk == 3}" style="color: #d9534f; font-weight: bold;">Alto (High)</span>
+                                <span th:if="${alert.risk == 2}" style="color: #f0ad4e; font-weight: bold;">Médio (Medium)</span>
+                                <span th:if="${alert.risk == 1}" style="color: #5bc0de; font-weight: bold;">Baixo (Low)</span>
+                                <span th:if="${alert.risk == 0}" style="color: #5cb85c; font-weight: bold;">Informativo (Informational)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Confiança:</th>
+                            <td th:text="${alert.confidence}">Confiança</td>
+                        </tr>
+                        <tr>
+                            <th>URL:</th>
+                            <td><span class="code-uri" th:text="${alert.uri}">URI</span></td>
+                        </tr>
+                        <tr>
+                            <th>Node Name:</th>
+                            <td th:text="${alert.uri}">Node Name</td>
+                        </tr>
+                        <tr>
+                            <th>Método:</th>
+                            <td th:text="${alert.method}">GET</td>
+                        </tr>
+                        <tr>
+                            <th>Parameter:</th>
+                            <td th:text="${alert.param}">Parameter</td>
+                        </tr>
+                        <tr>
+                            <th>Ataque:</th>
+                            <td th:text="${alert.attack}">Ataque</td>
+                        </tr>
+                        <tr>
+                            <th>Evidence:</th>
+                            <td th:text="${alert.evidence}">Evidence</td>
+                        </tr>
+                        <tr>
+                            <th>Other Info:</th>
+                            <td th:text="${alert.otherInfo}">Other Info</td>
+                        </tr>
+                        <tr>
+                            <th>Instances:</th>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <th>CWE Id:</th>
+                            <td th:text="${alert.cweId}">CWE Id</td>
+                        </tr>
+                        <tr>
+                            <th>WASC Id:</th>
+                            <td th:text="${alert.wascId}">WASC Id</td>
+                        </tr>
+                        <tr>
+                            <th>Plugin Id:</th>
+                            <td th:text="${alert.pluginId}">Plugin Id</td>
+                        </tr>
+                    </table>
+
+                    <p><strong>Descrição:</strong><br/><span th:utext="${alert.description}">Descrição</span></p>
+                    <p><strong>Solução:</strong><br/><span th:utext="${alert.solution}">Solução</span></p>
+                    
+                    <div th:if="${alert.reference != null and !alert.reference.isEmpty()}">
+                        <p><strong>Reference:</strong><br/><span th:utext="${alert.reference}">Reference</span></p>
+                    </div>
+                    
+                    <!-- Tabela de Tags / Chave-Valor Customizada -->
+                    <div th:if="${alert.tags != null and !alert.tags.isEmpty()}">
+                        <strong th:text="#{report.template.label.tags}">Etiquetas do Alerta (Chave / Valor):</strong>
+                        <table class="tags-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 35%;">Chave</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="tagEntry : ${alert.tags}">
+                                    <td th:text="${tagEntry.key}" style="font-family: monospace; font-weight: bold;">Chave</td>
+                                    <td th:text="${tagEntry.value}">Valor</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
